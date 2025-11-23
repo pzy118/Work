@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>我的观影清单</title>
+    <style>
+        * { margin: 0; padding: 0; font-family: 微软雅黑; }
+        body { padding: 20px; }
+        nav { margin-bottom: 20px; }
+        nav a { margin-right: 15px; text-decoration: none; color: #2c3e50; }
+        .movie-item { border: 1px solid #eee; padding: 15px; margin: 10px 0; border-radius: 8px; }
+        .rating { color: #e74c3c; font-weight: bold; }
+        button { background: #3498db; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; }
+        button.del { background: #e74c3c; margin-left: 10px; }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="index.html">我的观影清单</a>
+        <a href="add.html">添加观影记录</a>
+        <a href="category.html">分类管理</a>
+    </nav>
+
+    <h1>我的观影记录</h1>
+    <div id="movie-list"></div>
+
+    <!-- 引入Supabase CDN和配置文件 -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="supabaseClient.js"></script>
+    <script>
+        // 获取并渲染所有观影记录
+        async function getMovies() {
+            // 关联分类表，查询电影+对应的分类名
+            const { data, error } = await supabase
+                .from('movies')
+                .select(`
+                    *,
+                    movie_categories!inner(category_id),
+                    categories!inner(name)
+                `);
+
+            if (error) {
+                alert('加载失败：' + error.message);
+                return;
+            }
+
+            const list = document.getElementById('movie-list');
+            if (data.length === 0) {
+                list.innerHTML = '<p>暂无观影记录，快去添加吧～</p>';
+                return;
+            }
+
+            // 整理数据（去重分类）
+            const movieMap = {};
+            data.forEach(item => {
+                if (!movieMap[item.id]) {
+                    movieMap[item.id] = {
+                        ...item,
+                        categories: [item.categories.name]
+                    };
+                } else {
+                    movieMap[item.id].categories.push(item.categories.name);
+                }
+            });
+
+            // 渲染列表
+            list.innerHTML = Object.values(movieMap).map(movie => `
+                <div class="movie-item">
+                    <h3>${movie.title}</h3>
+                    <p>评分：<span class="rating">${movie.rating}分</span></p>
+                    <p>分类：${movie.categories.join('、')}</p>
+                    <p>短评：${movie.comment || '无'}</p>
+                    <p>添加时间：${new Date(movie.created_at).toLocaleDateString()}</p>
+                    <button class="del" onclick="deleteMovie('${movie.id}')">删除</button>
+                </div>
+            `).join('');
+        }
+
+        // 删除观影记录
+        async function deleteMovie(id) {
+            if (!confirm('确定删除这条记录吗？')) return;
+            const { error } = await supabase.from('movies').delete().eq('id', id);
+            if (error) {
+                alert('删除失败：' + error.message);
+            } else {
+                alert('删除成功！');
+                getMovies(); // 刷新列表
+            }
+        }
+
+        // 页面加载时获取数据
+        window.onload = getMovies;
+    </script>
+</body>
+</html>
