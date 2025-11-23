@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>数据库设置</title>
+    <style>
+        * { margin: 0; padding: 0; font-family: 微软雅黑; }
+        body { padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .sql-box { 
+            background: #f5f5f5; 
+            border: 1px solid #ddd; 
+            padding: 20px; 
+            border-radius: 8px; 
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+        button { 
+            background: #27ae60; 
+            color: white; 
+            border: none; 
+            padding: 10px 20px; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            font-size: 14px;
+            margin: 10px 5px;
+        }
+        button:hover { background: #2ecc71; }
+        button.danger { background: #e74c3c; }
+        button.danger:hover { background: #c0392b; }
+        .status { 
+            padding: 10px; 
+            margin: 10px 0; 
+            border-radius: 4px; 
+        }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .warning { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .step { 
+            margin: 20px 0; 
+            padding: 15px; 
+            border-left: 4px solid #3498db; 
+            background: #f8f9fa; 
+        }
+        .copy-btn { background: #3498db; font-size: 12px; padding: 5px 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>观影清单数据库设置</h1>
+        
+        <div class="step">
+            <h3>📋 步骤说明</h3>
+            <p>1. 点击下方按钮复制完整的SQL脚本</p>
+            <p>2. 打开你的Supabase项目控制台</p>
+            <p>3. 进入SQL编辑器页面</p>
+            <p>4. 粘贴SQL脚本并执行</p>
+            <p>5. 返回主页面测试应用</p>
+        </div>
+
+        <button onclick="copySQL()" class="copy-btn">📋 复制完整SQL脚本</button>
+        <button onclick="executeSQL()" class="danger">🚀 直接执行SQL（需要在Supabase环境中）</button>
+
+        <div class="sql-box" id="sqlContent">-- ========================================
+-- 观影清单数据库设置脚本
+-- ========================================
+
+-- 删除现有的表（如果存在）
+DROP TABLE IF EXISTS movie_categories CASCADE;
+DROP TABLE IF EXISTS movies CASCADE;
+DROP TABLE IF EXISTS categories CASCADE;
+
+-- 创建分类表
+CREATE TABLE categories (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    name VARCHAR(100) NOT NULL UNIQUE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 创建电影表
+CREATE TABLE movies (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    rating DECIMAL(3,1) CHECK (rating >= 0 AND rating <= 10),
+    comment TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 创建电影分类关联表
+CREATE TABLE movie_categories (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    movie_id UUID REFERENCES movies(id) ON DELETE CASCADE,
+    category_id UUID REFERENCES categories(id) ON DELETE CASCADE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(movie_id, category_id) -- 防止重复关联
+);
+
+-- 创建索引以提高查询性能
+CREATE INDEX idx_movie_categories_movie_id ON movie_categories(movie_id);
+CREATE INDEX idx_movie_categories_category_id ON movie_categories(category_id);
+
+-- 插入示例分类数据
+INSERT INTO categories (name) VALUES 
+('动作片'),
+('喜剧片'),
+('爱情片'),
+('科幻片'),
+('恐怖片'),
+('动画片');
+
+-- 插入示例电影数据
+INSERT INTO movies (title, rating, comment) VALUES 
+('复仇者联盟4', 8.5, '史诗级的超级英雄电影，十年布局的完美收官'),
+('泰坦尼克号', 9.0, '经典爱情电影，永恒的经典'),
+('千与千寻', 9.2, '宫崎骏的杰作，充满想象力的世界'),
+('盗梦空间', 8.8, '诺兰的烧脑神作，层层梦境');
+
+-- 为示例电影添加分类关联
+INSERT INTO movie_categories (movie_id, category_id) 
+SELECT 
+    (SELECT id FROM movies WHERE title = '复仇者联盟4'),
+    (SELECT id FROM categories WHERE name = '动作片');
+
+INSERT INTO movie_categories (movie_id, category_id) 
+SELECT 
+    (SELECT id FROM movies WHERE title = '复仇者联盟4'),
+    (SELECT id FROM categories WHERE name = '科幻片');
+
+INSERT INTO movie_categories (movie_id, category_id) 
+SELECT 
+    (SELECT id FROM movies WHERE title = '泰坦尼克号'),
+    (SELECT id FROM categories WHERE name = '爱情片');
+
+INSERT INTO movie_categories (movie_id, category_id) 
+SELECT 
+    (SELECT id FROM movies WHERE title = '千与千寻'),
+    (SELECT id FROM categories WHERE name = '动画片');
+
+INSERT INTO movie_categories (movie_id, category_id) 
+SELECT 
+    (SELECT id FROM movies WHERE title = '盗梦空间'),
+    (SELECT id FROM categories WHERE name = '科幻片');
+
+-- 查看设置结果
+SELECT 'Categories count: ' || COUNT(*) FROM categories;
+SELECT 'Movies count: ' || COUNT(*) FROM movies;
+SELECT 'Movie-Categories relations count: ' || COUNT(*) FROM movie_categories;
+
+SELECT 
+    m.title,
+    m.rating,
+    STRING_AGG(c.name, '、') as categories
+FROM movies m
+LEFT JOIN movie_categories mc ON m.id = mc.movie_id
+LEFT JOIN categories c ON mc.category_id = c.id
+GROUP BY m.id, m.title, m.rating
+ORDER BY m.created_at DESC;</div>
+
+        <div id="status"></div>
+
+        <div class="step">
+            <h3>🎯 设置完成后</h3>
+            <p>执行完SQL脚本后，点击下方链接测试应用：</p>
+            <a href="index.html">🎬 观影清单主页</a> |
+            <a href="add.html">➕ 添加观影记录</a> |
+            <a href="category.html">📂 分类管理</a>
+        </div>
+
+        <div class="step">
+            <h3>📝 表结构说明</h3>
+            <ul>
+                <li><strong>categories</strong>: 分类表，存储电影分类</li>
+                <li><strong>movies</strong>: 电影表，存储观影记录</li>
+                <li><strong>movie_categories</strong>: 关联表，连接电影和分类</li>
+            </ul>
+            <p>✅ 已配置正确的外键关系和级联删除</p>
+            <p>✅ 包含示例数据用于测试</p>
+        </div>
+    </div>
+
+    <!-- 引入Supabase CDN和配置文件 -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="supabaseClient.js"></script>
+    <script>
+        // 复制SQL到剪贴板
+        function copySQL() {
+            const sqlContent = document.getElementById('sqlContent').textContent;
+            navigator.clipboard.writeText(sqlContent).then(() => {
+                showStatus('✅ SQL脚本已复制到剪贴板！', 'success');
+            }).catch(() => {
+                showStatus('❌ 复制失败，请手动复制', 'error');
+            });
+        }
+
+        // 尝试直接执行SQL（在浏览器环境中可能受限）
+        async function executeSQL() {
+            showStatus('⚠️ 注意：直接执行功能需要在Supabase环境中运行', 'warning');
+            
+            try {
+                // 这里可以尝试逐条执行SQL，但由于浏览器安全限制可能无法直接执行
+                const sqlStatements = document.getElementById('sqlContent').textContent
+                    .split('--')
+                    .filter(stmt => stmt.trim())
+                    .map(stmt => '--' + stmt.trim());
+
+                showStatus('💡 建议复制SQL脚本到Supabase控制台执行', 'warning');
+            } catch (error) {
+                showStatus('❌ 执行失败：' + error.message, 'error');
+            }
+        }
+
+        // 显示状态信息
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+            setTimeout(() => {
+                statusDiv.innerHTML = '';
+            }, 5000);
+        }
+
+        // 页面加载时显示提示
+        window.onload = function() {
+            showStatus('👋 欢迎！请按照步骤说明设置数据库', 'success');
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>分类管理</title>
+    <style>
+        * { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; }
+        body { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        nav { 
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 20px 30px; 
+            margin-bottom: 30px; 
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        nav a { 
+            margin-right: 25px; 
+            text-decoration: none; 
+            color: #2c3e50;
+            font-weight: 500;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        nav a:hover {
+            color: #667eea;
+            transform: translateY(-2px);
+        }
+        nav a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: #667eea;
+            transition: width 0.3s ease;
+        }
+        nav a:hover::after {
+            width: 100%;
+        }
+        h1 {
+            color: white;
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+            text-align: center;
+            text-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        .add-category { 
+            background: linear-gradient(135deg, #27ae60, #2ecc71); 
+            color: white;
+            border: none;
+            padding: 15px 30px; 
+            margin-bottom: 30px; 
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
+        }
+        .add-category:hover { 
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(39, 174, 96, 0.4);
+        }
+        #add-form {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            margin-bottom: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        .form-group { 
+            margin-bottom: 20px; 
+        }
+        label { 
+            display: block; 
+            margin-bottom: 8px; 
+            font-weight: 600; 
+            color: #2c3e50;
+            font-size: 1.1rem;
+        }
+        input { 
+            width: 100%; 
+            padding: 15px; 
+            border: 2px solid #e1e8ed; 
+            border-radius: 10px; 
+            font-size: 16px;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        button { 
+            background: linear-gradient(135deg, #667eea, #764ba2); 
+            color: white; 
+            border: none; 
+            padding: 8px 16px; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-weight: 500;
+            transition: all 0.3s ease;
+            margin-right: 10px;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        button.cancel {
+            background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+        }
+        button.cancel:hover {
+            box-shadow: 0 5px 15px rgba(149, 165, 166, 0.4);
+        }
+        button.del { 
+            background: linear-gradient(135deg, #e74c3c, #c0392b); 
+        }
+        button.del:hover {
+            box-shadow: 0 5px 15px rgba(231, 76, 60, 0.4);
+        }
+        .category-grid {
+            display: grid;
+            gap: 20px;
+        }
+        .category-item { 
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: none;
+            padding: 25px; 
+            border-radius: 15px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .category-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+        .category-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
+        }
+        .category-info h3 {
+            color: #2c3e50;
+            font-size: 1.4rem;
+            margin-bottom: 8px;
+        }
+        .category-info p {
+            color: #7f8c8d;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .category-count {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        .empty-state {
+            text-align: center;
+            color: white;
+            padding: 60px 20px;
+            font-size: 1.2rem;
+        }
+        .empty-state h2 {
+            margin-bottom: 15px;
+            font-size: 1.8rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <nav>
+            <a href="index.html">🎬 我的观影清单</a>
+            <a href="add.html">➕ 添加观影记录</a>
+            <a href="category.html">📂 分类管理</a>
+            <a href="setup.html">🔧 数据库设置</a>
+        </nav>
+
+        <h1>📂 分类管理</h1>
+        
+        <button class="add-category" onclick="toggleAddForm()">➕ 添加新分类</button>
+        
+        <div id="add-form" style="display: none;">
+            <div class="form-group">
+                <label for="category-name">🏷️ 分类名称</label>
+                <input type="text" id="category-name" placeholder="请输入分类名称...">
+            </div>
+            <button onclick="addCategory()">💾 保存</button>
+            <button onclick="toggleAddForm()" class="cancel">❌ 取消</button>
+        </div>
+
+        <div id="category-list" class="category-grid"></div>
+    </div>
+
+    <!-- 引入Supabase CDN和配置文件 -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="supabaseClient.js"></script>
+    <script>
+        // 显示/隐藏添加表单
+        function toggleAddForm() {
+            const form = document.getElementById('add-form');
+            form.style.display = form.style.display === 'none' ? 'block' : 'none';
+            if (form.style.display === 'block') {
+                document.getElementById('category-name').focus();
+            }
+        }
+
+        // 添加分类
+        async function addCategory() {
+            const nameInput = document.getElementById('category-name');
+            const name = nameInput.value.trim();
+
+            if (!name) {
+                alert('请输入分类名称');
+                return;
+            }
+
+            try {
+                const { error } = await supabase
+                    .from('categories')
+                    .insert({ name: name });
+
+                if (error) {
+                    alert('添加分类失败：' + error.message);
+                    return;
+                }
+
+                alert('添加成功！');
+                nameInput.value = '';
+                toggleAddForm();
+                loadCategories(); // 刷新列表
+
+            } catch (error) {
+                alert('添加失败：' + error.message);
+            }
+        }
+
+        // 删除分类
+        async function deleteCategory(id) {
+            if (!confirm('确定删除这个分类吗？删除后相关电影的分类关联也会被删除。')) return;
+
+            try {
+                // 先删除相关的电影分类关联
+                const { error: relationError } = await supabase
+                    .from('movie_categories')
+                    .delete()
+                    .eq('category_id', id);
+
+                if (relationError) {
+                    alert('删除分类关联失败：' + relationError.message);
+                    return;
+                }
+
+                // 再删除分类
+                const { error } = await supabase
+                    .from('categories')
+                    .delete()
+                    .eq('id', id);
+
+                if (error) {
+                    alert('删除分类失败：' + error.message);
+                    return;
+                }
+
+                alert('删除成功！');
+                loadCategories(); // 刷新列表
+
+            } catch (error) {
+                alert('删除失败：' + error.message);
+            }
+        }
+
+        // 获取并显示所有分类
+        async function loadCategories() {
+            const { data, error } = await supabase
+                .from('categories')
+                .select('*');
+
+            if (error) {
+                alert('加载分类失败：' + error.message);
+                return;
+            }
+
+            const list = document.getElementById('category-list');
+            if (data.length === 0) {
+                list.innerHTML = `
+                    <div class="empty-state">
+                        <h2>📂 暂无分类</h2>
+                        <p>点击上方"添加新分类"按钮创建你的第一个电影分类</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // 获取每个分类的电影数量
+            const categoryIds = data.map(cat => cat.id);
+            const { data: relations, error: relationError } = await supabase
+                .from('movie_categories')
+                .select('category_id')
+                .in('category_id', categoryIds);
+
+            let categoryCounts = {};
+            if (!relationError && relations) {
+                relations.forEach(rel => {
+                    categoryCounts[rel.category_id] = (categoryCounts[rel.category_id] || 0) + 1;
+                });
+            }
+
+            list.innerHTML = data.map(category => `
+                <div class="category-item">
+                    <div class="category-info">
+                        <h3>🏷️ ${category.name}</h3>
+                        <p>
+                            🎬 关联电影数量：<span class="category-count">${categoryCounts[category.id] || 0}</span> 部
+                        </p>
+                    </div>
+                    <button class="del" onclick="deleteCategory('${category.id}')">🗑️ 删除</button>
+                </div>
+            `).join('');
+        }
+
+        // 页面加载时获取分类数据
+        window.onload = loadCategories;
+    </script>
+</body>
+</html>

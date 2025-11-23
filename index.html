@@ -4,25 +4,175 @@
     <meta charset="UTF-8">
     <title>我的观影清单</title>
     <style>
-        * { margin: 0; padding: 0; font-family: 微软雅黑; }
-        body { padding: 20px; }
-        nav { margin-bottom: 20px; }
-        nav a { margin-right: 15px; text-decoration: none; color: #2c3e50; }
-        .movie-item { border: 1px solid #eee; padding: 15px; margin: 10px 0; border-radius: 8px; }
-        .rating { color: #e74c3c; font-weight: bold; }
-        button { background: #3498db; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; }
-        button.del { background: #e74c3c; margin-left: 10px; }
+        * { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; }
+        body { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 0;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        nav { 
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 20px 30px; 
+            margin-bottom: 30px; 
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        nav a { 
+            margin-right: 25px; 
+            text-decoration: none; 
+            color: #2c3e50;
+            font-weight: 500;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        nav a:hover {
+            color: #667eea;
+            transform: translateY(-2px);
+        }
+        nav a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: #667eea;
+            transition: width 0.3s ease;
+        }
+        nav a:hover::after {
+            width: 100%;
+        }
+        nav a:first-child {
+            color: #667eea;
+            font-weight: 600;
+        }
+        h1 {
+            color: white;
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+            text-align: center;
+            text-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        .movie-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 25px;
+            margin-top: 20px;
+        }
+        .movie-item { 
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: none; 
+            padding: 25px; 
+            border-radius: 15px; 
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .movie-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+        .movie-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+        }
+        .movie-item h3 {
+            color: #2c3e50;
+            margin-bottom: 12px;
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+        .movie-item p {
+            color: #5a6c7d;
+            margin-bottom: 8px;
+            line-height: 1.6;
+        }
+        .rating { 
+            color: #e74c3c; 
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+        .categories {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin: 10px 0;
+        }
+        .category-tag {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        button { 
+            background: linear-gradient(135deg, #667eea, #764ba2); 
+            color: white; 
+            border: none; 
+            padding: 8px 16px; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        button.del { 
+            background: linear-gradient(135deg, #e74c3c, #c0392b); 
+            margin-top: 15px;
+        }
+        button.del:hover {
+            box-shadow: 0 5px 15px rgba(231, 76, 60, 0.4);
+        }
+        .empty-state {
+            text-align: center;
+            color: white;
+            padding: 60px 20px;
+            font-size: 1.2rem;
+        }
+        .empty-state a {
+            color: white;
+            text-decoration: underline;
+        }
+        .movie-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 10px;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
     </style>
 </head>
 <body>
-    <nav>
-        <a href="index.html">我的观影清单</a>
-        <a href="add.html">添加观影记录</a>
-        <a href="category.html">分类管理</a>
-    </nav>
+    <div class="container">
+        <nav>
+            <a href="index.html">🎬 我的观影清单</a>
+            <a href="add.html">➕ 添加观影记录</a>
+            <a href="category.html">📂 分类管理</a>
+            <a href="setup.html">🔧 数据库设置</a>
+        </nav>
 
-    <h1>我的观影记录</h1>
-    <div id="movie-list"></div>
+        <h1>🎬 我的观影记录</h1>
+        <div id="movie-list" class="movie-grid"></div>
+    </div>
 
     <!-- 引入Supabase CDN和配置文件 -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
@@ -30,53 +180,76 @@
     <script>
         // 获取并渲染所有观影记录
         async function getMovies() {
-            // 关联分类表，查询电影+对应的分类名
-            const { data, error } = await supabase
-                .from('movies')
-                .select(`
-                    *,
-                    movie_categories!inner(category_id),
-                    categories!inner(name)
-                `);
+            // 1. 单独查3张表的数据（避开关联查询）
+            const [moviesRes, categoriesRes, movieCatesRes] = await Promise.all([
+                supabase.from('movies').select('*'), // 查所有电影
+                supabase.from('categories').select('*'), // 查所有分类
+                supabase.from('movie_categories').select('*') // 查所有关联关系
+            ]);
 
-            if (error) {
-                alert('加载失败：' + error.message);
+            // 检查是否有查询错误
+            if (moviesRes.error || categoriesRes.error || movieCatesRes.error) {
+                const errMsg = [
+                    moviesRes.error?.message,
+                    categoriesRes.error?.message,
+                    movieCatesRes.error?.message
+                ].filter(Boolean).join('；');
+                alert('加载失败：' + errMsg);
                 return;
             }
+
+            // 解构数据
+            const movies = moviesRes.data;
+            const categories = categoriesRes.data;
+            const movieCates = movieCatesRes.data;
 
             const list = document.getElementById('movie-list');
-            if (data.length === 0) {
-                list.innerHTML = '<p>暂无观影记录，快去添加吧～</p>';
+            if (movies.length === 0) {
+                list.innerHTML = `
+                    <div class="empty-state">
+                        <h2>📽️ 暂无观影记录</h2>
+                        <p>快去<a href="add.html">添加你的第一部电影</a>吧～</p>
+                    </div>
+                `;
                 return;
             }
 
-            // 整理数据（去重分类）
-            const movieMap = {};
-            data.forEach(item => {
-                if (!movieMap[item.id]) {
-                    movieMap[item.id] = {
-                        ...item,
-                        categories: [item.categories.name]
-                    };
-                } else {
-                    movieMap[item.id].categories.push(item.categories.name);
-                }
+            // 2. 手动匹配：给每个电影绑定分类名称
+            const movieWithCate = movies.map(movie => {
+                // 找当前电影的所有关联记录
+                const relateCates = movieCates.filter(item => item.movie_id === movie.id);
+                // 根据关联记录找分类名称
+                const cateNames = relateCates.map(relate => {
+                    const cate = categories.find(c => c.id === relate.category_id);
+                    return cate ? cate.name : '未知分类';
+                });
+                return {
+                    ...movie,
+                    cateNames: cateNames // 最终要显示的分类名称数组
+                };
             });
 
-            // 渲染列表
-            list.innerHTML = Object.values(movieMap).map(movie => `
+            // 3. 渲染页面（美化版本）
+            list.innerHTML = movieWithCate.map(movie => `
                 <div class="movie-item">
-                    <h3>${movie.title}</h3>
-                    <p>评分：<span class="rating">${movie.rating}分</span></p>
-                    <p>分类：${movie.categories.join('、')}</p>
-                    <p>短评：${movie.comment || '无'}</p>
-                    <p>添加时间：${new Date(movie.created_at).toLocaleDateString()}</p>
-                    <button class="del" onclick="deleteMovie('${movie.id}')">删除</button>
+                    <h3>🎬 ${movie.title}</h3>
+                    <div class="movie-meta">
+                        <span>⭐ 评分：<span class="rating">${movie.rating}分</span></span>
+                        <span>📅 ${new Date(movie.created_at).toLocaleDateString()}</span>
+                    </div>
+                    <div class="categories">
+                        ${movie.cateNames.length > 0 
+                            ? movie.cateNames.map(name => `<span class="category-tag">${name}</span>`).join('')
+                            : '<span class="category-tag" style="background: #95a5a6;">未分类</span>'
+                        }
+                    </div>
+                    <p style="margin-top: 12px; font-style: italic;">💬 ${movie.comment || '暂无短评'}</p>
+                    <button class="del" onclick="deleteMovie('${movie.id}')">🗑️ 删除记录</button>
                 </div>
             `).join('');
         }
 
-        // 删除观影记录
+        // 删除功能不变
         async function deleteMovie(id) {
             if (!confirm('确定删除这条记录吗？')) return;
             const { error } = await supabase.from('movies').delete().eq('id', id);
@@ -84,11 +257,11 @@
                 alert('删除失败：' + error.message);
             } else {
                 alert('删除成功！');
-                getMovies(); // 刷新列表
+                getMovies();
             }
         }
 
-        // 页面加载时获取数据
+        // 页面加载执行
         window.onload = getMovies;
     </script>
 </body>
